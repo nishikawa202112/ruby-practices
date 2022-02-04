@@ -1,11 +1,11 @@
 x = 1
 20.times do
   case 
-  when  x % 15.0 == 0
+  when  x % 15 == 0
     puts "FizzBuzz"
-  when  x % 3.0 == 0
+  when  x % 3 == 0
     puts "Fizz"
-  when  x % 5.0 == 0
+  when  x % 5 == 0
     puts "Buzz"
   else 
     puts x

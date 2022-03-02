@@ -1,59 +1,43 @@
 # frozen_string_literal: true
 
-class File
-  attr_reader :name
+def main
+  files = Dir.glob('*').sort
+  name_maxlength = files[0].length
+  (1..files.size - 1).each do |n|
+    length = files[n].length
+    name_maxlength = length if name_maxlength < length
+  end
+  line_count = 3
+  each_vertical_length = create_vertical_hash(line_count, files)
+  create_matrix_and_print(line_count, files, each_vertical_length, name_maxlength)
+end
 
-  def initialize(name)
-    @name = name
+def create_vertical_hash(line_count, files)
+  vertical_count = files.size / line_count
+  vertical_count_remainder = files.size % line_count
+  vertical_lengths = {}
+  (1..line_count).each { |n| vertical_lengths[n] = vertical_count }
+  (1..vertical_count_remainder).each { |n| vertical_lengths[n] += 1 }
+  vertical_lengths
+end
+
+def create_matrix_and_print(line_count, files, each_vertical_lengths, name_maxlength)
+  matrix = []
+  count = 0
+  (1..line_count).each do |n|
+    matrix_column = []
+    each_vertical_lengths[n].times do
+      matrix_column << files[count]
+      count += 1
+    end
+    matrix.push matrix_column
+  end
+  (0..each_vertical_lengths[1] - 1).each do |n|
+    (0..line_count - 1).each do |i|
+      print((matrix[i][n]).to_s.ljust(name_maxlength + 7))
+    end
+    print("\n")
   end
 end
 
-class Formatter
-  attr_reader :max, :maxlength, :files, :line, :index
-
-  def file_name_length(files)
-    @files = files
-    @max = files.size
-    @maxlength = files[0].name.length
-    (1..@max - 1).each do |n|
-      @maxlength = files[n].name.length if @maxlength < files[n].name.length
-    end
-  end
-
-  def file_format(line)
-    @line = line # 列の数
-    count1 = @max / line
-    count2 = @max % line
-    index = {}
-    (1..line).each { |n| index[n] = count1 }
-    (1..count2).each { |n| index[n] += 1 }
-    @index = index # 縦の長さ
-  end
-
-  def set_and_print
-    cell = []
-    count = 0
-    (1..@line).each do |n|
-      cell_x = []
-      @index[n].times do
-        cell_x << @files[count].name
-        count += 1
-      end
-      cell.push cell_x
-    end
-    (0..@index[1] - 1).each do |n|
-      (0..@line - 1).each do |i|
-        print((cell[i][n]).to_s.ljust(@maxlength + 7))
-      end
-      print("\n")
-    end
-  end
-end
-
-dir_file = Dir.glob('*').sort
-files = dir_file.map { |n| File.new(n) }
-formatter = Formatter.new
-formatter.file_name_length(files)
-line = 3
-formatter.file_format(line)
-formatter.set_and_print
+main

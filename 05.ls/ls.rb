@@ -1,30 +1,25 @@
 # frozen_string_literal: true
 
+LINE_COUNT = 3
 def main
-  files = Dir.glob('*').sort
-  name_maxlength = files[0].length
-  (1..files.size - 1).each do |n|
-    length = files[n].length
-    name_maxlength = length if name_maxlength < length
-  end
-  line_count = 3
-  each_vertical_length = create_vertical_hash(line_count, files)
-  create_matrix_and_print(line_count, files, each_vertical_length, name_maxlength)
+  files = Dir.glob('*')
+  max_name_length = files.max_by { :length }.length
+  each_vertical_length = create_vertical_hash(files)
+  create_matrix_and_print(files, each_vertical_length, max_name_length)
 end
 
-def create_vertical_hash(line_count, files)
-  vertical_count = files.size / line_count
-  vertical_count_remainder = files.size % line_count
+def create_vertical_hash(files)
+  vertical_count, vertical_count_remainder = files.size.divmod(LINE_COUNT)
   vertical_lengths = {}
-  (1..line_count).each { |n| vertical_lengths[n] = vertical_count }
+  (1..LINE_COUNT).each { |n| vertical_lengths[n] = vertical_count }
   (1..vertical_count_remainder).each { |n| vertical_lengths[n] += 1 }
   vertical_lengths
 end
 
-def create_matrix_and_print(line_count, files, each_vertical_lengths, name_maxlength)
+def create_matrix_and_print(files, each_vertical_lengths, max_name_length)
   matrix = []
   count = 0
-  (1..line_count).each do |n|
+  (1..LINE_COUNT).each do |n|
     matrix_column = []
     each_vertical_lengths[n].times do
       matrix_column << files[count]
@@ -33,8 +28,8 @@ def create_matrix_and_print(line_count, files, each_vertical_lengths, name_maxle
     matrix.push matrix_column
   end
   (0..each_vertical_lengths[1] - 1).each do |n|
-    (0..line_count - 1).each do |i|
-      print((matrix[i][n]).to_s.ljust(name_maxlength + 7))
+    (0..LINE_COUNT - 1).each do |i|
+      print((matrix[i][n]).to_s.ljust(max_name_length + 7))
     end
     print("\n")
   end

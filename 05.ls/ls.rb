@@ -1,35 +1,40 @@
 # frozen_string_literal: true
 
-LINE_COUNT = 3
+require 'io/console'
+
 def main
+  _, colums = $stdout.winsize
   files = Dir.glob('*')
-  max_name_length = files.max_by { :length }.length
-  each_vertical_length = create_vertical_hash(files)
-  create_matrix_and_print(files, each_vertical_length, max_name_length)
+  max_name_length = files.max_by { :length }.length + 2
+  line_count = colums / max_name_length
+  vertical_length, remainder = files.size.divmod(line_count)
+  vertical_length += 1 if remainder.positive?
+  names = create_array(files, vertical_length, line_count)
+  print_array(names, max_name_length, line_count, vertical_length)
 end
 
-def create_vertical_hash(files)
-  vertical_count, vertical_count_remainder = files.size.divmod(LINE_COUNT)
-  vertical_lengths = {}
-  (1..LINE_COUNT).each { |n| vertical_lengths[n] = vertical_count }
-  (1..vertical_count_remainder).each { |n| vertical_lengths[n] += 1 }
-  vertical_lengths
-end
-
-def create_matrix_and_print(files, each_vertical_lengths, max_name_length)
-  matrix = []
+def create_array(files, vertical_length, line_count)
+  names_array = []
   count = 0
-  (1..LINE_COUNT).each do |n|
-    matrix_column = []
-    each_vertical_lengths[n].times do
-      matrix_column << files[count]
-      count += 1
+  line_count.times do
+    name_array = []
+    vertical_length.times do
+      if count == files.size
+        name_array << ' '
+      else
+        name_array << files[count]
+        count += 1
+      end
     end
-    matrix.push matrix_column
+    names_array << name_array
   end
-  (0..each_vertical_lengths[1] - 1).each do |n|
-    (0..LINE_COUNT - 1).each do |i|
-      print((matrix[i][n]).to_s.ljust(max_name_length + 7))
+  names_array.transpose
+end
+
+def print_array(names, max_name_length, line_count, vertical_length)
+  (0..vertical_length - 1).each do |i|
+    (0..line_count - 1).each do |n|
+      print names[i][n].ljust(max_name_length)
     end
     print("\n")
   end

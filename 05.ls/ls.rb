@@ -3,38 +3,48 @@
 require 'io/console'
 
 def main
-  _, colums = $stdout.winsize
+  _, columns = $stdout.winsize
   files = Dir.glob('*')
-  max_name_length = files.max_by { :length }.length + 2
-  line_count = colums / max_name_length
-  vertical_length, remainder = files.size.divmod(line_count)
-  vertical_length += 1 if remainder.positive?
-  names = create_array(files, vertical_length, line_count)
-  print_array(names, max_name_length, line_count, vertical_length)
+  max_name_length = create_max_name_length(files)
+  column_count, line_count = seek_column_and_line(columns, max_name_length, files)
+  names = create_names(files, line_count, column_count)
+  print_names(names, max_name_length, column_count, line_count)
 end
 
-def create_array(files, vertical_length, line_count)
-  names_array = []
+def create_max_name_length(files)
+  max_name_length = files.max_by(&:length).length
+  column_space = 8 - max_name_length % 8
+  max_name_length + column_space
+end
+
+def seek_column_and_line(columns, max_name_length, files)
+  column_count = columns / max_name_length
+  line_count = (files.size.to_f / column_count).ceil
+  [column_count, line_count]
+end
+
+def create_names(files, line_count, column_count)
+  names = []
   count = 0
-  line_count.times do
-    name_array = []
-    vertical_length.times do
+  column_count.times do
+    names_array = []
+    line_count.times do
       if count == files.size
-        name_array << ' '
+        names_array << ' '
       else
-        name_array << files[count]
+        names_array << files[count]
         count += 1
       end
     end
-    names_array << name_array
+    names << names_array
   end
-  names_array.transpose
+  names.transpose
 end
 
-def print_array(names, max_name_length, line_count, vertical_length)
-  (0..vertical_length - 1).each do |i|
-    (0..line_count - 1).each do |n|
-      print names[i][n].ljust(max_name_length)
+def print_names(names, max_name_length, column_count, line_count)
+  (0..line_count - 1).each do |i|
+    (0..column_count - 1).each do |n|
+      print names[i][n].ljust(max_name_length) unless names[i][n] == ' '
     end
     print("\n")
   end

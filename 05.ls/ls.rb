@@ -9,8 +9,8 @@ def main
   files = Dir.glob('*')
   column_width = calc_column_width(files)
   row_count = calc_row_count(columns, column_width, files)
-  names = create_names(files, row_count)
-  print_names(names, column_width)
+  file_name_lines = create_file_name_lines(files, row_count)
+  print_file_name_lines(file_name_lines, column_width)
 end
 
 def calc_column_width(files)
@@ -24,14 +24,14 @@ def calc_row_count(columns, column_width, files)
   (files.size.to_f / column_count).ceil
 end
 
-def create_names(files, row_count)
-  names = files.each_slice(row_count).to_a
-  (row_count - names.last.size).times { names.last.push(nil) }
-  names.transpose
+def create_file_name_lines(files, row_count)
+  file_name_lines = files.each_slice(row_count).to_a
+  (row_count - file_name_lines.last.size).times { file_name_lines.last.push(nil) }
+  file_name_lines.transpose
 end
 
-def print_names(names, column_width)
-  names.each do |line|
+def print_file_name_lines(file_name_lines, column_width)
+  file_name_lines.each do |line|
     line.each do |name|
       print name.ljust(column_width) unless name.nil?
     end

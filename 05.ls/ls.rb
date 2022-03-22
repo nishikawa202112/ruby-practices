@@ -7,14 +7,14 @@ TAB_SPACE = 8
 
 def main
   _, columns = $stdout.winsize
-  files = create_files
+  files = find_files
   column_width = calc_column_width(files)
   row_count = calc_row_count(columns, column_width, files)
   file_name_lines = create_file_name_lines(files, row_count)
   print_file_name_lines(file_name_lines, column_width)
 end
 
-def create_files
+def find_files
   opt = OptionParser.new
   opt.on('-a')
   params = {}

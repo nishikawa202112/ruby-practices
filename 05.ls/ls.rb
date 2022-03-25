@@ -19,11 +19,8 @@ def find_files
   opt.on('-r')
   params = {}
   opt.parse!(ARGV, into: params)
-  if params[:r]
-    Dir.glob('*').reverse
-  else
-    Dir.glob('*')
-  end
+  files = Dir.glob('*')
+  params[:r] ? files.reverse : files
 end
 
 def calc_column_width(files)

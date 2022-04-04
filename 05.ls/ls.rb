@@ -76,22 +76,14 @@ def find_permission(f_lstat)
 end
 
 def calc_files_details_widths(files_details)
-  nlinks = []
-  uid_names = []
-  gid_names = []
-  sizes = []
+  lengths = Hash.new { |h, k| h[k] = [] }
   files_details.each do |details|
-    nlinks << details[:nlink]
-    uid_names << details[:uid_name]
-    gid_names << details[:gid_name]
-    sizes << details[:size]
+    lengths[:nlink] << details[:nlink].to_s.length
+    lengths[:uid_name] << details[:uid_name].length
+    lengths[:gid_name] << details[:gid_name].length
+    lengths[:size] << details[:size].to_s.length
   end
-  files_details_widths = {}
-  files_details_widths[:nlink] = nlinks.map(&:to_s).max_by(&:length).length
-  files_details_widths[:uid_name] = uid_names.max_by(&:length).length
-  files_details_widths[:gid_name] = gid_names.max_by(&:length).length
-  files_details_widths[:size] = sizes.map(&:to_s).max_by(&:length).length
-  files_details_widths
+  lengths.transform_values(&:max)
 end
 
 def print_files_details(files_details, files_details_widths)

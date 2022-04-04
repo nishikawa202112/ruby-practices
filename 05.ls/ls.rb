@@ -5,11 +5,13 @@ require 'optparse'
 require 'etc'
 
 TAB_SPACE = 8
+
 FILE_TYPE = {
   'file' => '-',
   'directory' => 'd',
   'link' => 'l'
 }.freeze
+
 FILE_MODE = {
   '0' => '---',
   '1' => '--x',
@@ -23,11 +25,12 @@ FILE_MODE = {
 
 def main
   _, columns = $stdout.winsize
-  files, parameter_l = find_files
-  if parameter_l
-    files_details, file_blocks = create_files_details(files)
+  files = Dir.glob('*')
+  long_format = find_long_format
+  if long_format
+    files_details = create_files_details(files)
     files_details_widths = calc_files_details_widths(files_details)
-    print_files_details(files_details, files_details_widths, file_blocks)
+    print_files_details(files_details, files_details_widths)
   else
     column_width = calc_column_width(files)
     row_count = calc_row_count(columns, column_width, files)
@@ -36,35 +39,40 @@ def main
   end
 end
 
-def find_files
+def find_long_format
   opt = OptionParser.new
   opt.on('-l')
   params = {}
   opt.parse!(ARGV, into: params)
-  files = Dir.glob('*')
-  [files, params[:l]]
+  params[:l]
 end
 
 def create_files_details(files)
   files_details = []
-  file_blocks = 0
   files.each do |file|
-    fs = File.lstat(file)
-    file_blocks += fs.blocks
+    f_lstat = File.lstat(file)
     file_detail = {}
-    file_detail[:ftype] = FILE_TYPE[fs.ftype]
-    mode_character = ''
-    fs.mode.to_s(8).rjust(6, '0').chars[3..5].each do |mode|
-      mode_character += FILE_MODE[mode]
-    end
-    file_detail[:permission] = mode_character
-    file_detail.merge!(nlink: fs.nlink, uid_name: Etc.getpwuid(fs.uid).name, gid_name: Etc.getgrgid(fs.gid).name)
-    file_detail.merge!(size: fs.size, month: fs.mtime.month, day: fs.mtime.day, time: fs.mtime.strftime('%R'))
+    file_detail[:block] = f_lstat.blocks
+    file_detail[:ftype] = FILE_TYPE[f_lstat.ftype]
+    file_detail[:permission] = find_permission(f_lstat)
+    file_detail[:nlink] = f_lstat.nlink
+    file_detail[:uid_name] = Etc.getpwuid(f_lstat.uid).name
+    file_detail[:gid_name] = Etc.getgrgid(f_lstat.gid).name
+    file_detail[:size] = f_lstat.size
+    file_detail[:times] = f_lstat.mtime.strftime('%_3m%_3d %_6R ')
     file_detail[:name] = file
-    file_detail[:lname] = File.readlink(file_detail[:name]) if fs.ftype == 'link'
+    file_detail[:lname] = File.readlink(file_detail[:name]) if f_lstat.ftype == 'link'
     files_details << file_detail
   end
-  [files_details, file_blocks]
+  files_details
+end
+
+def find_permission(f_lstat)
+  mode_character = ''
+  f_lstat.mode.to_s(8).rjust(6, '0').chars[3..5].each do |mode|
+    mode_character += FILE_MODE[mode]
+  end
+  mode_character
 end
 
 def calc_files_details_widths(files_details)
@@ -86,8 +94,9 @@ def calc_files_details_widths(files_details)
   files_details_widths
 end
 
-def print_files_details(files_details, files_details_widths, file_blocks)
-  print 'total ', file_blocks.to_s, "\n"
+def print_files_details(files_details, files_details_widths)
+  file_blocks = calc_file_blocks(files_details)
+  puts "total #{file_blocks}"
   files_details.each do |details|
     print details[:ftype]
     print details[:permission]
@@ -95,17 +104,19 @@ def print_files_details(files_details, files_details_widths, file_blocks)
     print details[:uid_name].rjust(files_details_widths[:uid_name] + 1)
     print details[:gid_name].rjust(files_details_widths[:gid_name] + 2)
     print details[:size].to_s.rjust(files_details_widths[:size] + 2)
-    print details[:month].to_s.rjust(3)
-    print details[:day].to_s.rjust(3)
-    print details[:time].rjust(6)
-    print ' '
-    print details[:name].ljust(1)
-    if details[:lname]
-      print ' -> '
-      print details[:lname].ljust(1)
-    end
+    print details[:times]
+    print details[:name]
+    print " -> #{details[:lname]}" if details[:lname]
     print "\n"
   end
+end
+
+def calc_file_blocks(files_details)
+  file_blocks = 0
+  files_details.each do |details|
+    file_blocks += details[:block]
+  end
+  file_blocks
 end
 
 def calc_column_width(files)

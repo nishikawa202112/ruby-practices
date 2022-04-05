@@ -26,8 +26,7 @@ FILE_MODE = {
 def main
   _, columns = $stdout.winsize
   files = Dir.glob('*')
-  long_format = find_long_format
-  if long_format
+  if long_format?
     files_details = create_files_details(files)
     files_details_widths = calc_files_details_widths(files_details)
     print_files_details(files_details, files_details_widths)
@@ -39,7 +38,7 @@ def main
   end
 end
 
-def find_long_format
+def long_format?
   opt = OptionParser.new
   opt.on('-l')
   params = {}
@@ -48,23 +47,22 @@ def find_long_format
 end
 
 def create_files_details(files)
-  files_details = []
-  files.each do |file|
+  files.map do |file|
     f_lstat = File.lstat(file)
-    file_detail = {}
-    file_detail[:block] = f_lstat.blocks
-    file_detail[:ftype] = FILE_TYPE[f_lstat.ftype]
-    file_detail[:permission] = find_permission(f_lstat)
-    file_detail[:nlink] = f_lstat.nlink
-    file_detail[:uid_name] = Etc.getpwuid(f_lstat.uid).name
-    file_detail[:gid_name] = Etc.getgrgid(f_lstat.gid).name
-    file_detail[:size] = f_lstat.size
-    file_detail[:times] = f_lstat.mtime.strftime('%_3m%_3d %_6R ')
-    file_detail[:name] = file
-    file_detail[:lname] = File.readlink(file_detail[:name]) if f_lstat.ftype == 'link'
-    files_details << file_detail
+    name = file
+    file = {}
+    file[:block] = f_lstat.blocks
+    file[:ftype] = FILE_TYPE[f_lstat.ftype]
+    file[:permission] = find_permission(f_lstat)
+    file[:nlink] = f_lstat.nlink
+    file[:uid_name] = Etc.getpwuid(f_lstat.uid).name
+    file[:gid_name] = Etc.getgrgid(f_lstat.gid).name
+    file[:size] = f_lstat.size
+    file[:times] = f_lstat.mtime.strftime('%_3m%_3d %_6R ')
+    file[:name] = name
+    file[:lname] = File.readlink(file[:name]) if f_lstat.ftype == 'link'
+    file
   end
-  files_details
 end
 
 def find_permission(f_lstat)
@@ -87,7 +85,7 @@ def calc_files_details_widths(files_details)
 end
 
 def print_files_details(files_details, files_details_widths)
-  file_blocks = calc_file_blocks(files_details)
+  file_blocks = files_details.map { |detail| detail[:block] }.sum
   puts "total #{file_blocks}"
   files_details.each do |details|
     print details[:ftype]
@@ -101,14 +99,6 @@ def print_files_details(files_details, files_details_widths)
     print " -> #{details[:lname]}" if details[:lname]
     print "\n"
   end
-end
-
-def calc_file_blocks(files_details)
-  file_blocks = 0
-  files_details.each do |details|
-    file_blocks += details[:block]
-  end
-  file_blocks
 end
 
 def calc_column_width(files)

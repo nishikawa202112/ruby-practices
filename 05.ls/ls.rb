@@ -27,9 +27,9 @@ def main
   _, columns = $stdout.winsize
   files = Dir.glob('*')
   if long_format?
-    files_details = create_files_details(files)
-    files_details_widths = calc_files_details_widths(files_details)
-    print_files_details(files_details, files_details_widths)
+    file_details = create_file_details(files)
+    file_details_widths = calc_file_details_widths(file_details)
+    print_file_details(file_details, file_details_widths)
   else
     column_width = calc_column_width(files)
     row_count = calc_row_count(columns, column_width, files)
@@ -46,7 +46,7 @@ def long_format?
   params[:l]
 end
 
-def create_files_details(files)
+def create_file_details(files)
   files.map do |file|
     f_lstat = File.lstat(file)
     name = file
@@ -66,34 +66,36 @@ def create_files_details(files)
 end
 
 def find_permission(f_lstat)
-  mode_character = ''
-  f_lstat.mode.to_s(8).rjust(6, '0').chars[3..5].each do |mode|
-    mode_character += FILE_MODE[mode]
-  end
-  mode_character
+  f_lstat
+    .mode
+    .to_s(8)
+    .rjust(6, '0')
+    .chars[3..5]
+    .map { |mode| FILE_MODE[mode] }
+    .join
 end
 
-def calc_files_details_widths(files_details)
-  lengths = Hash.new { |h, k| h[k] = [] }
-  files_details.each do |details|
-    lengths[:nlink] << details[:nlink].to_s.length
-    lengths[:uid_name] << details[:uid_name].length
-    lengths[:gid_name] << details[:gid_name].length
-    lengths[:size] << details[:size].to_s.length
+def calc_file_details_widths(file_details)
+  widths = Hash.new { |h, k| h[k] = [] }
+  file_details.each do |detail|
+    widths[:nlink] << detail[:nlink].to_s.length
+    widths[:uid_name] << detail[:uid_name].length
+    widths[:gid_name] << detail[:gid_name].length
+    widths[:size] << detail[:size].to_s.length
   end
-  lengths.transform_values(&:max)
+  widths.transform_values(&:max)
 end
 
-def print_files_details(files_details, files_details_widths)
-  file_blocks = files_details.map { |detail| detail[:block] }.sum
+def print_file_details(file_details, file_details_widths)
+  file_blocks = file_details.map { |detail| detail[:block] }.sum
   puts "total #{file_blocks}"
-  files_details.each do |details|
+  file_details.each do |details|
     print details[:ftype]
     print details[:permission]
-    print details[:nlink].to_s.rjust(files_details_widths[:nlink] + 2)
-    print details[:uid_name].rjust(files_details_widths[:uid_name] + 1)
-    print details[:gid_name].rjust(files_details_widths[:gid_name] + 2)
-    print details[:size].to_s.rjust(files_details_widths[:size] + 2)
+    print details[:nlink].to_s.rjust(file_details_widths[:nlink] + 2)
+    print details[:uid_name].rjust(file_details_widths[:uid_name] + 1)
+    print details[:gid_name].rjust(file_details_widths[:gid_name] + 2)
+    print details[:size].to_s.rjust(file_details_widths[:size] + 2)
     print details[:times]
     print details[:name]
     print " -> #{details[:lname]}" if details[:lname]

@@ -28,8 +28,8 @@ def main
   files = Dir.glob('*')
   if long_format?
     file_details = create_file_details(files)
-    file_details_widths = calc_file_details_widths(file_details)
-    print_file_details(file_details, file_details_widths)
+    max_width_table = build_max_width_table(file_details)
+    print_file_details(file_details, max_width_table)
   else
     column_width = calc_column_width(files)
     row_count = calc_row_count(columns, column_width, files)
@@ -47,21 +47,19 @@ def long_format?
 end
 
 def create_file_details(files)
-  files.map do |file|
-    f_lstat = File.lstat(file)
-    name = file
-    file = {}
-    file[:block] = f_lstat.blocks
-    file[:ftype] = FILE_TYPE[f_lstat.ftype]
-    file[:permission] = find_permission(f_lstat)
-    file[:nlink] = f_lstat.nlink
-    file[:uid_name] = Etc.getpwuid(f_lstat.uid).name
-    file[:gid_name] = Etc.getgrgid(f_lstat.gid).name
-    file[:size] = f_lstat.size
-    file[:times] = f_lstat.mtime.strftime('%_3m%_3d %_6R ')
-    file[:name] = name
-    file[:lname] = File.readlink(file[:name]) if f_lstat.ftype == 'link'
-    file
+  file_details = files.map { |file| Hash[* :name, file] }
+  file_details.map do |file_detail|
+    f_lstat = File.lstat(file_detail[:name])
+    file_detail[:block] = f_lstat.blocks
+    file_detail[:ftype] = FILE_TYPE[f_lstat.ftype]
+    file_detail[:permission] = find_permission(f_lstat)
+    file_detail[:nlink] = f_lstat.nlink
+    file_detail[:uid_name] = Etc.getpwuid(f_lstat.uid).name
+    file_detail[:gid_name] = Etc.getgrgid(f_lstat.gid).name
+    file_detail[:size] = f_lstat.size
+    file_detail[:times] = f_lstat.mtime.strftime('%_3m%_3d %_6R ')
+    file_detail[:lname] = File.readlink(file_detail[:name]) if f_lstat.ftype == 'link'
+    file_detail
   end
 end
 
@@ -75,7 +73,7 @@ def find_permission(f_lstat)
     .join
 end
 
-def calc_file_details_widths(file_details)
+def build_max_width_table(file_details)
   widths = Hash.new { |h, k| h[k] = [] }
   file_details.each do |detail|
     widths[:nlink] << detail[:nlink].to_s.length
@@ -86,16 +84,16 @@ def calc_file_details_widths(file_details)
   widths.transform_values(&:max)
 end
 
-def print_file_details(file_details, file_details_widths)
+def print_file_details(file_details, max_width_table)
   file_blocks = file_details.map { |detail| detail[:block] }.sum
   puts "total #{file_blocks}"
   file_details.each do |details|
     print details[:ftype]
     print details[:permission]
-    print details[:nlink].to_s.rjust(file_details_widths[:nlink] + 2)
-    print details[:uid_name].rjust(file_details_widths[:uid_name] + 1)
-    print details[:gid_name].rjust(file_details_widths[:gid_name] + 2)
-    print details[:size].to_s.rjust(file_details_widths[:size] + 2)
+    print details[:nlink].to_s.rjust(max_width_table[:nlink] + 2)
+    print details[:uid_name].rjust(max_width_table[:uid_name] + 1)
+    print details[:gid_name].rjust(max_width_table[:gid_name] + 2)
+    print details[:size].to_s.rjust(max_width_table[:size] + 2)
     print details[:times]
     print details[:name]
     print " -> #{details[:lname]}" if details[:lname]

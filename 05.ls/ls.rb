@@ -47,9 +47,10 @@ def long_format?
 end
 
 def create_file_details(files)
-  file_details = files.map { |file| Hash[* :name, file] }
-  file_details.map do |file_detail|
-    f_lstat = File.lstat(file_detail[:name])
+  files.map do |file|
+    file_detail = {}
+    file_detail[:name] = file
+    f_lstat = File.lstat(file)
     file_detail[:block] = f_lstat.blocks
     file_detail[:ftype] = FILE_TYPE[f_lstat.ftype]
     file_detail[:permission] = find_permission(f_lstat)

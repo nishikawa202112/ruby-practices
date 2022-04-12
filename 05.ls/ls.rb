@@ -24,7 +24,7 @@ FILE_MODE = {
 }.freeze
 
 def main
-  params = find_params
+  params = parse_params
   files = find_files(params)
   if params[:l]
     file_details = create_file_details(files)
@@ -38,7 +38,7 @@ def main
   end
 end
 
-def find_params
+def parse_params
   opt = OptionParser.new
   opt.on('-a')
   opt.on('-r')
@@ -49,12 +49,7 @@ def find_params
 end
 
 def find_files(params)
-  files =
-    if params[:a].nil?
-      Dir.glob('*')
-    elsif params[:a]
-      Dir.entries('.').sort
-    end
+  files = params[:a] ? Dir.entries('.').sort : Dir.glob('*')
   params[:r] ? files.reverse : files
 end
 
@@ -65,7 +60,7 @@ def create_file_details(files)
     f_lstat = File.lstat(file)
     file_detail[:block] = f_lstat.blocks
     file_detail[:ftype] = FILE_TYPE[f_lstat.ftype]
-    file_detail[:permission] = find_permission(f_lstat)
+    file_detail[:permission] = build_permission_text(f_lstat)
     file_detail[:nlink] = f_lstat.nlink
     file_detail[:uid_name] = Etc.getpwuid(f_lstat.uid).name
     file_detail[:gid_name] = Etc.getgrgid(f_lstat.gid).name
@@ -76,7 +71,7 @@ def create_file_details(files)
   end
 end
 
-def find_permission(f_lstat)
+def build_permission_text(f_lstat)
   f_lstat
     .mode
     .to_s(8)

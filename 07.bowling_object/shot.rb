@@ -1,20 +1,15 @@
 # frozen_string_literal: true
 
 class Shot
-  def initialize(marks)
-    @marks = marks
+  attr_reader :mark
+
+  def initialize(mark)
+    @mark = mark
   end
 
-  def create_scores
-    scores = []
-    @marks.each do |mark|
-      if mark == 'X'
-        scores.push(10)
-        scores.push(0)
-      else
-        scores.push(mark.to_i)
-      end
-    end
-    scores
+  def score
+    return 10 if mark == 'X'
+
+    mark.to_i
   end
 end

@@ -6,17 +6,17 @@ class Game
   def initialize(games_marks = ARGV[0])
     marks = games_marks.split(',').map { |games_mark| Shot.new(games_mark) }
     frame_scores = []
-    frame_score = []
+    one_frame_scores = []
     frame_number = 0
     marks.each do |mark|
-      frame_score << mark.score
-      next unless (frame_score.length == 2 || mark.score == 10) && frame_number < 9
+      one_frame_scores << mark.score
+      next unless (one_frame_scores.length == 2 || mark.score == 10) && frame_number < 9
 
-      frame_scores.push(frame_score)
+      frame_scores.push(one_frame_scores)
       frame_number += 1
-      frame_score = []
+      one_frame_scores = []
     end
-    frame_scores.push(frame_score)
+    frame_scores.push(one_frame_scores)
     @frames = []
     @frames = frame_scores.map { |scores| Frame.new(scores[0], scores[1], scores[2]) }
   end

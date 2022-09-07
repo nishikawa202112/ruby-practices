@@ -1,38 +1,39 @@
 # frozen_string_literal: true
 
+require_relative 'shot'
 require_relative 'frame'
 
 class Game
-  def initialize(games_marks = ARGV[0])
-    marks = games_marks.split(',').map { |games_mark| Shot.new(games_mark) }
+  def initialize(game_marks = ARGV[0])
+    marks = game_marks.split(',').map { |game_mark| Shot.new(game_mark) }
     frame_scores = []
     one_frame_scores = []
-    frame_number = 0
     marks.each do |mark|
       one_frame_scores << mark.score
-      next unless (one_frame_scores.length == 2 || mark.score == 10) && frame_number < 9
+      next unless (one_frame_scores.length == 2 || mark.score == 10) && frame_scores.length < 9
 
       frame_scores.push(one_frame_scores)
-      frame_number += 1
       one_frame_scores = []
     end
     frame_scores.push(one_frame_scores)
-    @frames = []
-    @frames = frame_scores.map { |scores| Frame.new(scores[0], scores[1], scores[2]) }
+    @frames = frame_scores.map { |scores| Frame.new(scores) }
   end
 
   def score
     point = (0..8).sum do |i|
-      if @frames[i].strike
-        if @frames[i + 1].second_shot.nil?
-          @frames[i].score + @frames[i + 1].score + @frames[i + 2].first_shot
+      current_frame = @frames[i]
+      next_frame = @frames[i + 1]
+      next_next_frame = @frames[i + 2]
+      if current_frame.strike?
+        if next_frame.shots[1].nil?
+          current_frame.score + next_frame.score + next_next_frame.shots[0]
         else
-          @frames[i].score + @frames[i + 1].first_shot + @frames[i + 1].second_shot
+          current_frame.score + next_frame.shots[0] + next_frame.shots[1]
         end
-      elsif @frames[i].spare
-        @frames[i].score + @frames[i + 1].first_shot
+      elsif current_frame.spare?
+        current_frame.score + next_frame.shots[0]
       else
-        @frames[i].score
+        current_frame.score
       end
     end
     point + @frames[9].score

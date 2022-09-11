@@ -1,20 +1,18 @@
 # frozen_string_literal: true
 
-require_relative 'shot'
-
 class Frame
-  attr_reader :scores
+  attr_reader :frame_shots
 
-  def initialize(scores)
-    @scores = scores
+  def initialize(frame_shots)
+    @frame_shots = frame_shots
   end
 
   def score
-    scores.map(&:shot_score).sum
+    frame_shots.map(&:shot_score).sum
   end
 
   def strike?
-    scores[0].shot_score == 10
+    frame_shots[0].strike?
   end
 
   def spare?

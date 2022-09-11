@@ -12,4 +12,8 @@ class Shot
 
     mark.to_i
   end
+
+  def strike?
+    mark == 'X'
+  end
 end

@@ -30,12 +30,12 @@ class Game
       after_next_frame = @frames[i + 2]
       if current_frame.strike?
         if next_frame.strike? && (i != 8)
-          current_frame.score + next_frame.score + after_next_frame.frame_shots[0].shot_score
+          current_frame.score + next_frame.score + after_next_frame.shots[0].shot_score
         else
-          current_frame.score + next_frame.frame_shots[0].shot_score + next_frame.frame_shots[1].shot_score
+          current_frame.score + next_frame.shots[0].shot_score + next_frame.shots[1].shot_score
         end
       elsif current_frame.spare?
-        current_frame.score + next_frame.frame_shots[0].shot_score
+        current_frame.score + next_frame.shots[0].shot_score
       else
         current_frame.score
       end

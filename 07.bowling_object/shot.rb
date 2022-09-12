@@ -8,9 +8,7 @@ class Shot
   end
 
   def shot_score
-    return 10 if mark == 'X'
-
-    mark.to_i
+    strike? ? 10 : mark.to_i
   end
 
   def strike?

@@ -8,7 +8,7 @@ class Frame
   end
 
   def score
-    shots.map(&:shot_score).sum
+    shots.map(&:score).sum
   end
 
   def strike?

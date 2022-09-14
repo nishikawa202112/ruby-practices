@@ -18,4 +18,15 @@ class Frame
   def spare?
     !strike? && score == 10
   end
+
+  def calc_score_with_bonus(next_frame, after_next_frame)
+    score +
+      if strike?
+        next_frame.strike? && !after_next_frame.nil? ? (next_frame.score + after_next_frame.shots[0].score) : next_frame.shots[0..1].sum(&:score)
+      elsif spare?
+        next_frame.shots[0].score
+      else
+        0
+      end
+  end
 end

@@ -16,10 +16,10 @@ class Game
       shots << shot
       next unless (shots.length == 2 || shot.strike?) && @frames.length < 9
 
-      @frames.push(Frame.new(shots))
+      @frames << Frame.new(shots)
       shots = []
     end
-    @frames.push(Frame.new(shots))
+    @frames << Frame.new(shots)
   end
 
   def total_score

@@ -2,7 +2,6 @@
 
 class Frame
   attr_reader :shots
-
   protected :shots
 
   def initialize(shots)
@@ -31,4 +30,7 @@ class Frame
         0
       end
   end
+
+  protected :strike?
+  private :spare?
 end

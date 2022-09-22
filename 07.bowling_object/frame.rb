@@ -12,14 +12,6 @@ class Frame
     shots.map(&:score).sum
   end
 
-  def strike?
-    shots[0].strike? && shots[1].nil?
-  end
-
-  def spare?
-    !strike? && score == 10
-  end
-
   def calc_score_with_bonus(next_frame, after_next_frame)
     score +
       if strike?
@@ -31,6 +23,15 @@ class Frame
       end
   end
 
-  protected :strike?
-  private :spare?
+  protected
+
+  def strike?
+    shots[0].strike? && shots[1].nil?
+  end
+
+  private
+
+  def spare?
+    !strike? && score == 10
+  end
 end

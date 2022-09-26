@@ -2,20 +2,20 @@
 
 require 'io/console'
 require 'optparse'
-require_relative 'ls_l'
-require_relative 'ls_ar'
+require_relative 'create_ls_list_option_l'
+require_relative 'create_ls_list'
 
 class Ls
   def initialize(argv_params)
     @params = parse_params(argv_params)
-    @files = find_files(@params)
+    @files = find_files
   end
 
   def print_ls
     if @params[:l]
-      LsL.new(@files).print_ls
+      CreateLsListOptionL.new(@files).print_ls
     else
-      LsAr.new(@files).print_ls
+      CreateLsList.new(@files).print_ls
     end
   end
 
@@ -31,9 +31,9 @@ class Ls
     params
   end
 
-  def find_files(params)
-    files = params[:a] ? Dir.entries('.').sort : Dir.glob('*')
-    params[:r] ? files.reverse : files
+  def find_files
+    files = @params[:a] ? Dir.entries('.').sort : Dir.glob('*')
+    @params[:r] ? files.reverse : files
   end
 end
 
